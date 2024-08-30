@@ -15,20 +15,19 @@ import styles from './styles';
 const TodoApp = () => {
   const [todos, setTodos] = useState([]);
   const [inputText, setInputText] = useState('');
+  const { WidgetUpdate } = NativeModules;
 
   useEffect(() => {
     loadTodosFromPreferences();
   }, []);
 
   const updateWidget = () => {
-    const {IntentLauncher} = NativeModules;
-    if (IntentLauncher && IntentLauncher.sendBroadcast) {
-      IntentLauncher.sendBroadcast('android.appwidget.action.APPWIDGET_UPDATE');
+    if (WidgetUpdate && WidgetUpdate.sendBroadcast) {
+      WidgetUpdate.sendBroadcast('com.yourproject.UPDATE_WIDGET');
     } else {
-      console.warn('IntentLauncher is not available');
+      console.warn('WidgetUpdate is not available');
     }
   };
-
   const saveTodosAndUpdateWidget = async todos => {
     await saveTodosToPreferences(todos);
     updateWidget();
