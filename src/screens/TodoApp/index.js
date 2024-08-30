@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  NativeModules,
 } from 'react-native';
 import SharedPreferences from 'react-native-shared-preferences';
 import styles from './styles';
@@ -19,13 +20,27 @@ const TodoApp = () => {
     loadTodosFromPreferences();
   }, []);
 
-  const saveTodos = newTodos => {
-    try {
-      SharedPreferences.setItem('todos', JSON.stringify(newTodos));
-      setTodos(newTodos);
-    } catch (e) {
-      console.error('Failed to save todos.', e);
-    }
+  const updateWidget = () => {
+    const {IntentLauncher} = NativeModules;
+    IntentLauncher.sendBroadcast('android.appwidget.action.APPWIDGET_UPDATE');
+  };
+
+  const saveTodosAndUpdateWidget = async todos => {
+    await saveTodosToPreferences(todos);
+    updateWidget();
+  };
+
+  const saveTodosToPreferences = async newTodos => {
+    return new Promise((resolve, reject) => {
+      try {
+        SharedPreferences.setItem('todos', JSON.stringify(newTodos));
+        setTodos(newTodos);
+        resolve(); // Resolve the promise when the operation is successful
+      } catch (e) {
+        console.error('Failed to save todos.', e);
+        reject(e); // Reject the promise if an error occurs
+      }
+    });
   };
 
   const loadTodosFromPreferences = () => {
@@ -43,7 +58,8 @@ const TodoApp = () => {
         ...todos,
         {id: Date.now().toString(), text: inputText, completed: false},
       ];
-      saveTodos(newTodos);
+      // saveTodosToPreferences(newTodos);
+      saveTodosAndUpdateWidget(newTodos);
       setInputText('');
     } else {
       Alert.alert('Error', 'Please enter a todo item.');
@@ -54,12 +70,14 @@ const TodoApp = () => {
     const newTodos = todos.map(todo =>
       todo.id === id ? {...todo, completed: !todo.completed} : todo,
     );
-    saveTodos(newTodos);
+    // saveTodosToPreferences(newTodos);
+    saveTodosAndUpdateWidget(newTodos);
   };
 
   const deleteTodo = id => {
     const newTodos = todos.filter(todo => todo.id !== id);
-    saveTodos(newTodos);
+    // saveTodosToPreferences(newTodos);
+    saveTodosAndUpdateWidget(newTodos);
   };
 
   return (
