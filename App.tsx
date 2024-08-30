@@ -1,5 +1,5 @@
 import React from 'react';
-import TodoApp from './Todo';
+import {TodoApp} from './src/screens';
 
 function App(): React.JSX.Element {
   return <TodoApp />;
