@@ -22,7 +22,11 @@ const TodoApp = () => {
 
   const updateWidget = () => {
     const {IntentLauncher} = NativeModules;
-    IntentLauncher.sendBroadcast('android.appwidget.action.APPWIDGET_UPDATE');
+    if (IntentLauncher && IntentLauncher.sendBroadcast) {
+      IntentLauncher.sendBroadcast('android.appwidget.action.APPWIDGET_UPDATE');
+    } else {
+      console.warn('IntentLauncher is not available');
+    }
   };
 
   const saveTodosAndUpdateWidget = async todos => {
