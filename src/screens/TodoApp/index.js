@@ -23,7 +23,7 @@ const TodoApp = () => {
 
   const updateWidget = () => {
     if (WidgetUpdate && WidgetUpdate.sendBroadcast) {
-      WidgetUpdate.sendBroadcast('com.yourproject.UPDATE_WIDGET');
+      WidgetUpdate.sendBroadcast('com.videocallwidget.UPDATE_WIDGET');
     } else {
       console.warn('WidgetUpdate is not available');
     }
