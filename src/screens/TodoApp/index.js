@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, TextInput, FlatList, TouchableOpacity, Text, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useState, useEffect} from 'react';
+import {
+  SafeAreaView,
+  View,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  Alert,
+} from 'react-native';
+import SharedPreferences from 'react-native-shared-preferences';
 import styles from './styles';
 
 const TodoApp = () => {
@@ -8,30 +16,33 @@ const TodoApp = () => {
   const [inputText, setInputText] = useState('');
 
   useEffect(() => {
-    loadTodos();
+    loadTodosFromPreferences();
   }, []);
 
-  const loadTodos = async () => {
+  const saveTodos = newTodos => {
     try {
-      const savedTodos = await AsyncStorage.getItem('@todos');
-      if (savedTodos) setTodos(JSON.parse(savedTodos));
-    } catch (e) {
-      console.error('Failed to load todos.', e);
-    }
-  };
-
-  const saveTodos = async (newTodos) => {
-    try {
-      await AsyncStorage.setItem('@todos', JSON.stringify(newTodos));
+      SharedPreferences.setItem('todos', JSON.stringify(newTodos));
       setTodos(newTodos);
     } catch (e) {
       console.error('Failed to save todos.', e);
     }
   };
 
+  const loadTodosFromPreferences = () => {
+    SharedPreferences.getItem('todos', value => {
+      if (value) {
+        const _todos = JSON.parse(value);
+        setTodos(_todos);
+      }
+    });
+  };
+
   const addTodo = () => {
     if (inputText.trim()) {
-      const newTodos = [...todos, { id: Date.now().toString(), text: inputText, completed: false }];
+      const newTodos = [
+        ...todos,
+        {id: Date.now().toString(), text: inputText, completed: false},
+      ];
       saveTodos(newTodos);
       setInputText('');
     } else {
@@ -39,14 +50,14 @@ const TodoApp = () => {
     }
   };
 
-  const toggleTodo = (id) => {
+  const toggleTodo = id => {
     const newTodos = todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      todo.id === id ? {...todo, completed: !todo.completed} : todo,
     );
     saveTodos(newTodos);
   };
 
-  const deleteTodo = (id) => {
+  const deleteTodo = id => {
     const newTodos = todos.filter(todo => todo.id !== id);
     saveTodos(newTodos);
   };
@@ -65,11 +76,12 @@ const TodoApp = () => {
       </TouchableOpacity>
       <FlatList
         data={todos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
           <View style={styles.todoItem}>
             <TouchableOpacity onPress={() => toggleTodo(item.id)}>
-              <Text style={[styles.todoText, item.completed && styles.completed]}>
+              <Text
+                style={[styles.todoText, item.completed && styles.completed]}>
                 {item.text}
               </Text>
             </TouchableOpacity>
